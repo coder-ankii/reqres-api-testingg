@@ -1,0 +1,40 @@
+name: API Tests
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Install Newman HTML Reporter
+        run: npm install -g newman-reporter-htmlextra
+
+      - name: Run API Tests
+        run: |
+          newman run collections/"ReqRes API Tests.postman_collection.json" \
+          -e environments/"ReqRes Dev.postman_environment.json" \
+          -r htmlextra \
+          --reporter-htmlextra-export reports/report.html
+
+      - name: Upload HTML Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: api-test-report
+          path: reports/report.html
